@@ -15,6 +15,10 @@ import {
   Signal
 } from 'lucide-react';
 
+
+
+// POS pro
+
 const Header = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isOnline, setIsOnline] = useState(true);
@@ -64,22 +68,22 @@ const Header = () => {
       <div className="lg:hidden bg-gradient-to-r from-blue-700 to-purple-800 text-white px-4 py-1 text-xs">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-1">
-            <span className="font-semibold">POS Pro</span>
-            {isOnline ? (
+            {/* <span className="font-semibold">POS Pro</span> */}
+            {/* {isOnline ? (
               <div className="flex items-center space-x-1">
                 <Signal className="w-3 h-3 text-green-400" />
                 <Wifi className="w-3 h-3 text-green-400" />
               </div>
             ) : (
               <span className="text-red-400">Offline</span>
-            )}
+            )} */}
           </div>
-          <div className="flex items-center space-x-2">
+          {/* <div className="flex items-center space-x-2">
             <span className={getBatteryColor(batteryLevel)}>
               {Math.round(batteryLevel)}%
             </span>
             <Battery className={`w-4 h-4 ${getBatteryColor(batteryLevel)}`} />
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -91,15 +95,15 @@ const Header = () => {
             {/* Left Section - Brand & Mobile Menu */}
             <div className="flex items-center space-x-3 lg:space-x-4">
               {/* Mobile Menu Button */}
-              <button 
+              {/* <button 
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
                 className="lg:hidden p-2 hover:bg-white/10 rounded-xl transition-all duration-200 active:scale-95"
               >
                 <Menu className="w-6 h-6" />
-              </button>
+              </button> */}
 
               {/* Brand Logo */}
-              <div className="flex items-center space-x-3">
+              {/* <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-white/30 to-white/10 rounded-2xl flex items-center justify-center backdrop-blur-xl shadow-lg border border-white/20">
                   <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                 </div>
@@ -111,7 +115,7 @@ const Header = () => {
                     Enterprise Retail System
                   </p>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Center Section - Date & Time */}
@@ -204,7 +208,7 @@ const Header = () => {
             </div>
 
             {/* Mobile Status */}
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2">
               <div className={`px-2 py-1 rounded-lg text-xs font-medium ${
                 isOnline 
                   ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
@@ -212,14 +216,14 @@ const Header = () => {
               }`}>
                 {isOnline ? '🟢 Live' : '🔴 Offline'}
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Mobile Quick Stats Bar */}
           <div className="lg:hidden mt-3 grid grid-cols-4 gap-2">
             <div className="bg-white/10 rounded-lg p-2 text-center backdrop-blur-sm border border-white/10">
               <Package className="w-4 h-4 mx-auto mb-1 text-blue-200" />
-              <div className="text-xs text-white font-bold">1.2K</div>
+              <div className="text-xs text-white font-bold">300</div>
               <div className="text-[10px] text-blue-200">Products</div>
             </div>
             <div className="bg-white/10 rounded-lg p-2 text-center backdrop-blur-sm border border-white/10">
@@ -239,9 +243,9 @@ const Header = () => {
             </div>
           </div>
         </div>
-
+{/* quick sale */}
         {/* Mobile Navigation Menu */}
-        {showMobileMenu && (
+        {/* {showMobileMenu && (
           <div className="lg:hidden bg-gradient-to-b from-blue-700 to-purple-800 border-t border-white/10 shadow-2xl">
             <div className="px-4 py-3 space-y-2">
               <button className="w-full flex items-center space-x-3 p-3 rounded-xl bg-white/10 hover:bg-white/15 transition-colors">
@@ -262,7 +266,7 @@ const Header = () => {
               </button>
             </div>
           </div>
-        )}
+        )} */}
       </header>
 
       {/* Custom Styles for Mobile Optimization */}
@@ -284,3 +288,7 @@ const Header = () => {
 };
 
 export default Header;
+
+
+
+// wifi

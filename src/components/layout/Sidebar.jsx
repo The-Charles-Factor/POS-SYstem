@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Package, 
   ShoppingCart, 
   Settings,
-  Menu
+  Menu,
+  X,
+  LogOut
 } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const navigate = useNavigate();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile on mount and resize
@@ -18,8 +21,8 @@ const Sidebar = () => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      if (mobile) {
-        setIsCollapsed(true); // Always collapsed on mobile
+      if (!mobile) {
+        setIsMobileOpen(false);
       }
     };
 
@@ -28,10 +31,10 @@ const Sidebar = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Auto-collapse on mobile when route changes
+  // Close mobile sidebar when route changes
   useEffect(() => {
     if (isMobile) {
-      setIsCollapsed(true);
+      setIsMobileOpen(false);
     }
   }, [location.pathname, isMobile]);
 
@@ -68,56 +71,76 @@ const Sidebar = () => {
     return location.pathname.startsWith(path);
   };
 
-  const toggleSidebar = () => {
-    if (!isMobile) {
-      setIsCollapsed(!isCollapsed);
+  const toggleMobileMenu = () => {
+    setIsMobileOpen(!isMobileOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileOpen(false);
+  };
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      closeMobileMenu();
     }
   };
 
-  const handleMenuClick = () => {
-    if (isMobile) {
-      setIsCollapsed(true);
-    }
+  const handleLogout = () => {
+    // Add your logout logic here
+    console.log('Logging out...');
+    // Example: clear auth tokens, redirect to login, etc.
+    // navigate('/login');
+    handleLinkClick();
   };
 
   return (
     <>
-      {/* Mobile Header - Minimal */}
-      {isMobile && (
-        <div className="lg:hidden fixed top-0 left-0 right-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white z-40 h-16 shadow-lg border-b border-gray-700">
-          <div className="flex items-center justify-between h-full px-4">
-            {/* Simple logo only */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <LayoutDashboard className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-xl font-bold text-white">POS</h1>
-            </div>
-            
-            <button
-              onClick={toggleSidebar}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              <Menu className="w-6 h-6 text-white" />
-            </button>
-          </div>
-        </div>
+      {/* Mobile Overlay */}
+      {isMobile && isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={closeMobileMenu}
+        />
       )}
 
-      {/* Sidebar - Ultra Minimal */}
+      {/* Sidebar */}
       <aside className={`
         bg-gradient-to-b from-gray-900 to-gray-800 text-white 
         transition-all duration-300 ease-in-out
         flex flex-col
-        fixed lg:static top-0 left-0 h-screen z-30
-        ${isCollapsed ? 'w-16' : 'w-20'}
+        fixed lg:static top-0 left-0 h-screen z-50
+        ${isMobile ? (isMobileOpen ? 'w-64 translate-x-0' : '-translate-x-full') : 'w-64'}
         shadow-2xl border-r border-gray-700
         overflow-y-auto
       `}>
         
-        {/* Navigation Menu - Icons Only */}
-        <nav className={`flex-1 overflow-y-auto py-4 ${isMobile ? 'mt-16' : 'mt-4'}`}>
-          <div className="space-y-2 px-2">
+        {/* Logo/Brand */}
+        <div className="p-4 border-b border-gray-700">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="font-bold text-white">L</span>
+            </div>
+            {(!isMobile || isMobileOpen) && (
+              <h1 className="text-xl font-bold text-white">njoroge</h1>
+            )}
+          </div>
+        </div>
+
+        {/* Close Button for Mobile */}
+        {isMobile && isMobileOpen && (
+          <div className="lg:hidden flex justify-end p-4 border-b border-gray-700">
+            <button
+              onClick={closeMobileMenu}
+              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
+        )}
+
+        {/* Navigation Menu */}
+        <nav className="flex-1 overflow-y-auto py-4">
+          <div className="space-y-2 px-3">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = isActivePath(item.path);
@@ -126,16 +149,16 @@ const Sidebar = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  onClick={handleMenuClick}
+                  onClick={handleLinkClick}
                   className={`
-                    flex items-center justify-center rounded-lg p-3 transition-all duration-200 group
+                    flex items-center rounded-lg p-3 transition-all duration-200 group
                     ${isActive 
-                      ? 'bg-blue-600 shadow-lg shadow-blue-500/25 text-white' 
-                      : 'hover:bg-gray-700/50 text-gray-300 hover:text-white'
+                      ? 'bg-blue-600/80 backdrop-blur-sm shadow-lg shadow-blue-500/25 text-white' 
+                      : 'bg-gray-800/50 backdrop-blur-sm hover:bg-gray-700/70 text-gray-300 hover:text-white'
                     }
-                    cursor-pointer
+                    justify-start space-x-3
+                    cursor-pointer border border-gray-600/30
                   `}
-                  title={item.label}
                 >
                   <div className={`
                     transition-transform duration-200
@@ -143,13 +166,16 @@ const Sidebar = () => {
                   `}>
                     <Icon className="w-5 h-5" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm">{item.label}</div>
+                  </div>
                 </Link>
               );
             })}
           </div>
         </nav>
 
-        {/* Bottom Section - Icons Only */}
+        {/* Bottom Section */}
         <div className="border-t border-gray-700 p-3 space-y-2">
           {/* Settings Menu Item */}
           {bottomMenuItems.map((item) => {
@@ -160,42 +186,59 @@ const Sidebar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={handleMenuClick}
+                onClick={handleLinkClick}
                 className={`
-                  flex items-center justify-center rounded-lg p-3 transition-all duration-200 group
+                  flex items-center rounded-lg p-3 transition-all duration-200 group
                   ${isActive 
-                    ? 'bg-gray-700 text-white' 
-                    : 'hover:bg-gray-700/50 text-gray-300 hover:text-white'
+                    ? 'bg-gray-700/80 backdrop-blur-sm text-white' 
+                    : 'bg-gray-800/50 backdrop-blur-sm hover:bg-gray-700/70 text-gray-300 hover:text-white'
                   }
-                  cursor-pointer
+                  justify-start space-x-3
+                  cursor-pointer border border-gray-600/30
                 `}
-                title={item.label}
               >
                 <Icon className="w-5 h-5" />
+                <div className="flex-1">
+                  <div className="font-medium text-sm">{item.label}</div>
+                </div>
               </Link>
             );
           })}
 
           {/* Logout Button */}
           <button 
+            onClick={handleLogout}
             className={`
-              w-full flex items-center justify-center rounded-lg p-3 text-gray-300 
-              hover:bg-red-600 hover:text-white transition-all duration-200 group
+              w-full flex items-center rounded-lg p-3 text-gray-300 
+              bg-gray-800/50 backdrop-blur-sm hover:bg-red-600/80 hover:text-white 
+              transition-all duration-200 group border border-gray-600/30
+              justify-start space-x-3
               cursor-pointer
             `}
-            title="Logout"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium text-sm">Logout</span>
           </button>
         </div>
       </aside>
-
-      {/* Add padding for mobile header */}
-      {isMobile && <div className="lg:hidden h-16" />}
+{/* logo */}
+      {/* Mobile Toggle Button */}
+      {isMobile && (
+        <button
+          onClick={toggleMobileMenu}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800/90 backdrop-blur-sm hover:bg-gray-700/90 rounded-lg transition-all duration-200 border border-gray-600/50 shadow-lg"
+        >
+          {isMobileOpen ? (
+            <X className="w-5 h-5 text-white" />
+          ) : (
+            <Menu className="w-5 h-5 text-white" />
+          )}
+        </button>
+      )}
     </>
   );
 };
 
 export default Sidebar;
+
+
