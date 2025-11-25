@@ -8,33 +8,39 @@ import {
   ChevronLeft,
   ChevronRight,
   Home,
-  Menu,
-  X
+  Menu
 } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Default collapsed on mobile
   const [activeSubmenu, setActiveSubmenu] = useState(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  // Close sidebar when clicking outside on mobile
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isMobileOpen && !event.target.closest('aside')) {
-        setIsMobileOpen(false);
-      }
-      setActiveSubmenu(null);
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [isMobileOpen]);
-
-  // Close mobile sidebar when route changes
+  // Auto-collapse when route changes
   useEffect(() => {
     setIsMobileOpen(false);
+    // On mobile, keep it collapsed after navigation
+    if (window.innerWidth < 1024) {
+      setIsCollapsed(true);
+    }
   }, [location.pathname]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // On desktop, can be expanded
+        setIsMobileOpen(false);
+      } else {
+        // On mobile, default to collapsed
+        setIsCollapsed(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const menuItems = [
     {
@@ -80,18 +86,31 @@ const Sidebar = () => {
   };
 
   const toggleSubmenu = (e, label) => {
+    e.preventDefault();
     e.stopPropagation();
     setActiveSubmenu(activeSubmenu === label ? null : label);
   };
 
-  const toggleMobileMenu = () => {
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
     setIsMobileOpen(!isMobileOpen);
+  };
+
+  const handleMenuClick = (e, hasSubmenu, label) => {
+    if (hasSubmenu) {
+      toggleSubmenu(e, label);
+    }
+    // Auto-collapse on mobile after selection
+    if (window.innerWidth < 1024 && !hasSubmenu) {
+      setIsCollapsed(true);
+      setIsMobileOpen(false);
+    }
   };
 
   return (
     <>
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white z-50 h-16 shadow-lg border-b border-gray-700">
+      {/* Mobile Header - Only show menu button */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white z-40 h-16 shadow-lg border-b border-gray-700">
         <div className="flex items-center justify-between h-full px-4">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
@@ -106,77 +125,66 @@ const Sidebar = () => {
           </div>
           
           <button
-            onClick={toggleMobileMenu}
+            onClick={toggleSidebar}
             className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
           >
-            {isMobileOpen ? (
-              <X className="w-6 h-6 text-white" />
-            ) : (
-              <Menu className="w-6 h-6 text-white" />
-            )}
+            <Menu className="w-6 h-6 text-white" />
           </button>
         </div>
       </div>
-
-      {/* Mobile Overlay */}
-      {isMobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setIsMobileOpen(false)}
-        />
-      )}
 
       {/* Sidebar */}
       <aside className={`
         bg-gradient-to-b from-gray-900 to-gray-800 text-white 
         transition-all duration-300 ease-in-out
         flex flex-col
-        fixed lg:static top-0 left-0 h-screen z-50
-        ${isCollapsed ? 'w-20' : 'w-80'}
+        fixed lg:static top-0 left-0 h-screen z-30
+        ${isCollapsed ? 'w-16' : 'w-64'}
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         shadow-2xl border-r border-gray-700
         lg:!translate-x-0
+        overflow-y-auto
       `}>
         
         {/* Desktop Header */}
-        <div className="p-6 border-b border-gray-700 lg:block hidden">
+        <div className="p-4 border-b border-gray-700 lg:block hidden">
           <div className={`flex items-center justify-between ${isCollapsed ? 'flex-col space-y-4' : 'flex-row'}`}>
             {!isCollapsed && (
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Home className="w-6 h-6 text-white" />
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <Home className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  <h1 className="text-lg font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                     POS System
                   </h1>
-                  <p className="text-gray-400 text-sm">Business Suite</p>
+                  <p className="text-gray-400 text-xs">Business Suite</p>
                 </div>
               </div>
             )}
             
             {isCollapsed && (
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Home className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <Home className="w-5 h-5 text-white" />
               </div>
             )}
 
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors group"
+              className="p-1 hover:bg-gray-700 rounded-lg transition-colors group"
             >
               {isCollapsed ? (
-                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-white" />
+                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white" />
               ) : (
-                <ChevronLeft className="w-5 h-5 text-gray-400 group-hover:text-white" />
+                <ChevronLeft className="w-4 h-4 text-gray-400 group-hover:text-white" />
               )}
             </button>
           </div>
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 overflow-y-auto py-6 mt-16 lg:mt-0">
-          <div className="space-y-2 px-4">
+        <nav className="flex-1 overflow-y-auto py-4 mt-16 lg:mt-0">
+          <div className="space-y-1 px-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = isActivePath(item.path);
@@ -186,14 +194,15 @@ const Sidebar = () => {
                 <div key={item.path} className="relative">
                   <Link
                     to={hasSubmenu ? '#' : item.path}
-                    onClick={(e) => hasSubmenu && toggleSubmenu(e, item.label)}
+                    onClick={(e) => handleMenuClick(e, hasSubmenu, item.label)}
                     className={`
-                      flex items-center rounded-xl p-3 transition-all duration-200 group
+                      flex items-center rounded-lg p-3 transition-all duration-200 group
                       ${isActive 
                         ? 'bg-blue-600 shadow-lg shadow-blue-500/25 text-white' 
                         : 'hover:bg-gray-700/50 text-gray-300 hover:text-white'
                       }
                       ${isCollapsed ? 'justify-center' : 'justify-between'}
+                      cursor-pointer
                     `}
                   >
                     <div className={`flex items-center ${isCollapsed ? '' : 'space-x-3'}`}>
@@ -215,7 +224,7 @@ const Sidebar = () => {
 
                     {!isCollapsed && hasSubmenu && (
                       <ChevronRight className={`
-                        w-4 h-4 transition-transform duration-200
+                        w-3 h-3 transition-transform duration-200
                         ${activeSubmenu === item.label ? 'rotate-90' : ''}
                       `} />
                     )}
@@ -223,7 +232,7 @@ const Sidebar = () => {
 
                   {/* Submenu */}
                   {hasSubmenu && activeSubmenu === item.label && !isCollapsed && (
-                    <div className="ml-4 mt-1 space-y-1 animate-slideDown">
+                    <div className="ml-3 mt-1 space-y-1 animate-slideDown">
                       {item.submenu.map((subItem) => {
                         const SubIcon = subItem.icon;
                         const isSubActive = isActivePath(subItem.path);
@@ -233,15 +242,24 @@ const Sidebar = () => {
                             key={subItem.path}
                             to={subItem.path}
                             className={`
-                              flex items-center space-x-3 rounded-lg p-2 text-sm transition-all duration-200
+                              flex items-center space-x-2 rounded-lg p-2 text-sm transition-all duration-200
                               ${isSubActive 
                                 ? 'bg-blue-500/20 text-blue-300 border-l-2 border-blue-400' 
                                 : 'text-gray-400 hover:bg-gray-700/30 hover:text-gray-200'
                               }
+                              cursor-pointer
                             `}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Auto-collapse on mobile after submenu selection
+                              if (window.innerWidth < 1024) {
+                                setIsCollapsed(true);
+                                setIsMobileOpen(false);
+                              }
+                            }}
                           >
-                            <SubIcon className="w-4 h-4" />
-                            <span>{subItem.label}</span>
+                            <SubIcon className="w-3 h-3" />
+                            <span className="text-xs">{subItem.label}</span>
                           </Link>
                         );
                       })}
@@ -254,15 +272,15 @@ const Sidebar = () => {
         </nav>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-700 p-4 space-y-2 pb-6 lg:pb-4">
-          {/* System Status */}
+        <div className="border-t border-gray-700 p-3 space-y-1">
+          {/* System Status - Only show when expanded */}
           {!isCollapsed && (
-            <div className="bg-gray-800/50 rounded-lg p-3 mb-2">
-              <div className="flex items-center justify-between text-sm">
+            <div className="bg-gray-800/50 rounded-lg p-2 mb-1">
+              <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">System</span>
                 <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-green-400">Online</span>
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-green-400 text-xs">Online</span>
                 </div>
               </div>
             </div>
@@ -278,13 +296,21 @@ const Sidebar = () => {
                 key={item.path}
                 to={item.path}
                 className={`
-                  flex items-center rounded-xl p-3 transition-all duration-200 group
+                  flex items-center rounded-lg p-3 transition-all duration-200 group
                   ${isActive 
                     ? 'bg-gray-700 text-white' 
                     : 'hover:bg-gray-700/50 text-gray-300 hover:text-white'
                   }
                   ${isCollapsed ? 'justify-center' : 'space-x-3'}
+                  cursor-pointer
                 `}
+                onClick={() => {
+                  // Auto-collapse on mobile after selection
+                  if (window.innerWidth < 1024) {
+                    setIsCollapsed(true);
+                    setIsMobileOpen(false);
+                  }
+                }}
               >
                 <Icon className="w-5 h-5" />
                 {!isCollapsed && (
@@ -299,8 +325,9 @@ const Sidebar = () => {
 
           {/* Logout Button */}
           <button className={`
-            w-full flex items-center rounded-xl p-3 text-gray-300 hover:bg-red-600 hover:text-white transition-all duration-200 group
+            w-full flex items-center rounded-lg p-3 text-gray-300 hover:bg-red-600 hover:text-white transition-all duration-200 group
             ${isCollapsed ? 'justify-center' : 'space-x-3'}
+            cursor-pointer
           `}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
